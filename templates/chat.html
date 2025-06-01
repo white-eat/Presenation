@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}AI助手{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-gradient text-white py-4">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-robot me-2"></i>
+                    工会系统AI助手
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                <!-- 网络状态指示器 -->
+                <div id="network-status" class="alert m-3 d-none rounded-pill text-center" role="alert"
+                     style="max-width: 300px; margin: 20px auto;">
+                    已连接到服务器
+                </div>
+
+                <div class="chat-container d-flex flex-column h-100">
+                    <div id="chat-box" class="flex-grow-1 overflow-auto p-3" style="background-color: #f8f9fa;">
+                        <div id="chat-box-inner" class="p-3" style="height: 600px; overflow-y: auto;">
+                            <!-- 聊天记录将通过JavaScript动态添加 -->
+                            <div class="alert alert-info text-center rounded-3">
+                                欢迎使用工会系统AI助手！<br>
+                                您可以在这里询问关于用户账户、贷款信息等相关问题。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top p-3 bg-light">
+                        <form id="chat-form" class="d-flex align-items-center p-3 bg-light border-top">
+                            <div class="flex-grow-1 position-relative me-2">
+                                <input type="text"
+                                       id="user-input"
+                                       class="form-control form-control-lg rounded-pill ps-4 py-2"
+                                       placeholder="请输入您的问题..."
+                                       autocomplete="off"
+                                       style="padding-right: 100px;">
+                            </div>
+                            <button type="submit"
+                                    class="btn btn-primary btn-lg rounded-pill px-4 py-2"
+                                    style="font-size: 1rem; min-width: 90px;">
+                                发送
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    {{ super() }}
+    {#<script src="https://kit.fontawesome.com/a076d05399.js"></script>#}
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* 主容器样式调整 */
+        .container.mt-5 {
+            max-width: 600px; /* 原为更大值，缩小为600px */
+            margin: 2rem auto;
+        }
+
+        /* 卡片整体缩小 */
+        .card.shadow-lg {
+            border-radius: 1rem;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        /* 聊天区域高度调整 */
+        #chat-box-inner {
+            height: 300px; /* 原为600px，减小为400px */
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        /* 消息气泡样式改为蓝白风格 */
+        .message {
+            margin-bottom: 0.75rem;
+            padding: 0.6rem 0.9rem;
+            border-radius: 0.4rem;
+            max-width: 75%;
+            line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.05);
+        }
+
+        .user-message {
+            background-color: #007bff; /* 强化蓝色 */
+            color: white;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .ai-message {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            color: #333;
+            border: 1px solid #dee2e6;
+        }
+
+        /* 输入表单优化 */
+        .input-group input[type="text"] {
+            border-radius: 2rem;
+            padding-left: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .input-group button.btn-primary {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        /* 网络状态指示器优化 */
+        #network-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            transition: opacity 0.3s;
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            animation: fadeInOut 0.5s ease-in-out;
+        }
+
+        /* 动画保持不变 */
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        .online {
+            background-color: #cce5ff !important;
+            color: #004085 !important;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 64, 139, 0.2);
+        }
+
+        .offline {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+            box-shadow: 0 0.25rem 0.5rem rgba(255, 0, 0, 0.2);
+        }
+
+        /* 加载点动画保持不变 */
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            animation: typingDots 1.4s infinite ease-in-out both;
+        }
+
+        /* 打字动画保持不变 */
+        @keyframes typingDots {
+            0% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            50% {
+                transform: translateY(-0.25em);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+        }
+
+        /* 避免输入框聚焦时被压缩 */
+        #user-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 576px) {
+            .btn-lg {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.8rem;
+            }
+        }
+
+    </style>
+{% endblock %}

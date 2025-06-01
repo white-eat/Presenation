@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}图表分析 - 工会系统{% endblock %}
+
+{% block script %}
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var graphs = {{graphJSON | safe}};
+      Plotly.plot('id-plotly-chart',graphs,{});
+    });
+  </script>
+{% endblock %}
+
+
+{% block content %}
+  <div id="id-plotly-chart" style="width: 100%; height: 400px; "></div>
+{% endblock %}

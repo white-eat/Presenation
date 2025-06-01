@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+{% extends "base.html" %}
+
+{% block title %}添加用户账户{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>添加用户账户</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="user_name">用户姓名</label>
+                    <input type="text" class="form-control" id="user_name" name="user_name" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="phone_number">手机号码</label>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="id_card_number">身份证号码</label>
+                    <input type="text" class="form-control" id="id_card_number" name="id_card_number" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="account_type">账户类型</label>
+                    <input type="text" class="form-control" id="account_type" name="account_type" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="opening_date">开户日期 (YYYY-MM-DD)</label>
+                    <input type="date" class="form-control" id="opening_date" name="opening_date" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="account_balance">账户余额</label>
+                    <input type="number" step="0.01" class="form-control" id="account_balance" name="account_balance" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="loan_type">贷款类型</label>
+                    <input type="text" class="form-control" id="loan_type" name="loan_type">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="loan_amount">贷款金额</label>
+                    <input type="number" step="0.01" class="form-control" id="loan_amount" name="loan_amount">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="loan_date">贷款日期 (YYYY-MM-DD)</label>
+                    <input type="date" class="form-control" id="loan_date" name="loan_date">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="loan_term">贷款期限 (月)</label>
+                    <input type="number" class="form-control" id="loan_term" name="loan_term">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="loan_channel">贷款渠道</label>
+                    <input type="text" class="form-control" id="loan_channel" name="loan_channel">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="repayment_status">还款状态</label>
+                    <input type="text" class="form-control" id="repayment_status" name="repayment_status">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">提交</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
