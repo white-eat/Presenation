@@ -7,12 +7,23 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var graphs = {{graphJSON | safe}};
-      Plotly.plot('id-plotly-chart',graphs,{});
+      Plotly.plot('id-plotly-chart', graphs, {});
+
+      // 添加按钮点击事件监听器
+      document.getElementById('bar-button').addEventListener('click', function() {
+        window.location.href = '/chart?type=bar';
+      });
+      document.getElementById('line-button').addEventListener('click', function() {
+        window.location.href = '/chart?type=line';
+      });
     });
   </script>
 {% endblock %}
 
-
 {% block content %}
-  <div id="id-plotly-chart" style="width: 100%; height: 400px; "></div>
+  <div class="btn-group" role="group" aria-label="Basic example">
+    <button type="button" class="btn btn-secondary" id="bar-button">柱状图</button>
+    <button type="button" class="btn btn-secondary" id="line-button">折线图</button>
+  </div>
+  <div id="id-plotly-chart" style="width: 100%; height: 400px;"></div>
 {% endblock %}
