@@ -20,11 +20,6 @@ API_KEY = "sk-diihbejqkjogqdvjipgbiiewmnwompshmnysafdztsooiabu"  # 硅基流动A
 MODEL_NAME = "Qwen/Qwen3-32B"  # 硅基流动模型名称
 BASE_URL = "https://api.siliconflow.cn/v1"
 
-
-# BASE_URL = "http://localhost:8080/api/application/e529c7d8-3a97-11f0-8e20-0242ac110002"
-# MODEL_NAME = "Qwen/Qwen3-30B-A3B"
-# API_KEY = "application-9636c1a920f1fca7ff1d573d9d26ef8e"
-
 def get_db_connection():
     return pymysql.connect(
         host='localhost',
@@ -36,7 +31,6 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
-
 @app.before_request
 def check_login():
     if request.endpoint in ['login', 'register', 'chat', 'chat_api']:
@@ -46,11 +40,9 @@ def check_login():
     if request.endpoint in ['insert'] and session['user_tokens'] != "ADMIN":
         return redirect('/403')
 
-
 @app.route('/403')
 def forbidden():
     return render_template('403.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -65,6 +57,9 @@ def login():
             user = cursor.fetchone()
         if user is not None:
             session['user_tokens'] = user['tokens']
+            # 检查用户是否为管理员
+            if user['tokens'] == "ADMIN":
+                session['user_role'] = "ADMIN"
             return redirect('/')
         else:
             return render_template('login.html', error='用户名或密码错误')
@@ -72,21 +67,17 @@ def login():
                            username=request.args.get('username', ''),
                            password=request.args.get('password', ''))
 
-
 @app.route('/logout')
 def logout():
     session.pop('user_tokens', None)
     return redirect('/login')
 
-
-# 利用Flask-WTF实现一个用户注册表单
 class RegisterForm(FlaskForm):
     username = StringField('用户名', validators=[DataRequired(), Length(max=20)])
     password = PasswordField('密码', validators=[DataRequired(), Length(min=6, max=20)])
     confirm_password = PasswordField('确认密码',
                                       validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('注册')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -100,7 +91,6 @@ def register():
         session['user_tokens'] = "GUEST"
         return redirect(url_for('login', username=form.username.data, password=form.password.data))
     return render_template('register.html', form=form)
-
 
 @app.route('/')
 @app.route('/list/<int:page_size>/<int:page_num>')
@@ -128,9 +118,11 @@ def index(page_size=10, page_num=1):
         page_size=page_size
     )
 
-
 @app.route('/insert', methods=['GET', 'POST'])
 def insert():
+    # 检查用户是否为管理员
+    if 'user_role' not in session or session['user_role'] != "ADMIN":
+        return redirect('/403')
     if request.method == 'POST':
         data = request.form
         conn = get_db_connection()
@@ -153,7 +145,6 @@ def insert():
 
     return render_template('insert.html')
 
-
 @app.route('/chart')
 def chart():
     type = request.args.get('type')
@@ -170,39 +161,29 @@ def chart():
         fig = px.line(x=labels, y=values, color_discrete_sequence=['#636EFA'],
                       title='贷款类型分布统计', labels={'x': '贷款类型', 'y': '用户数量'})
     else:
-        # loan_amount和account_balance里的数据取出来 放到DataFrame里，画箱线图
         with conn.cursor() as cursor:
             cursor.execute('SELECT loan_amount, account_balance FROM user_accounts')
             data = cursor.fetchall()
-            # data转成pandas DataFrame
         pandas_df = pd.DataFrame(data, columns=['loan_amount', 'account_balance'])
-        #  画箱线图
         fig = px.box(pandas_df, y=['loan_amount', 'account_balance'],
                      color_discrete_sequence=['#636EFA', '#EF553B'],
                      labels={'loan_amount': '贷款余额', 'account_balance': '账户余额',
                              'value': '金额', 'variable': '指标'})
-        fig.update_traces(quartilemethod="exclusive")  # or "inclusive", or "linear" by default
+        fig.update_traces(quartilemethod="exclusive")
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('chart.html',
                            graphJSON=graphJSON
                            )
 
-
 @app.route('/chat')
 def chat():
-    # 获取用户发送的消息
     user_message = request.args.get('message', '')
     if not user_message:
-        # 如果没有消息参数，返回聊天界面
         return render_template('chat.html')
     
-    # 调用大模型交互函数获取回复
     response = chat_with_large_model(user_message)
-    # 返回纯文本响应
     return response
 
-
-# 新增的API路由
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     data = request.get_json()
@@ -217,7 +198,6 @@ def chat_api():
     except Exception as e:
         return flask.jsonify({"error": str(e)}), 500
 
-
 def get_user_info(user_name):
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -228,7 +208,6 @@ def get_user_info(user_name):
                        f'OR phone_number LIKE "%{user_name}%"')
         rows = cursor.fetchall()
     return str(rows)
-
 
 def chat_with_large_model(message, history=None):
     if history is None:
@@ -243,13 +222,11 @@ def chat_with_large_model(message, history=None):
             "Content-Type": "application/json"
         }
 
-        # 构建消息历史
         messages = []
         for user_msg, ai_msg in history:
             messages.append({"role": "user", "content": user_msg})
             messages.append({"role": "assistant", "content": ai_msg})
         
-        # 添加当前消息
         messages.append({"role": "user", "content": message})
         
         data = {
@@ -279,9 +256,8 @@ def chat_with_large_model(message, history=None):
         response = requests.post(f"{BASE_URL}/chat/completions",
                                   json=data,
                                   headers=headers)
-        response.raise_for_status()  # 如果响应状态码不是200，将引发异常
+        response.raise_for_status()
 
-        # 解析响应中的模型回复
         response_json = response.json()
         if 'choices' in response_json and len(response_json['choices']) > 0:
             choice = response_json['choices'][0]
@@ -303,12 +279,10 @@ def chat_with_large_model(message, history=None):
             return "无法从大模型获取有效回复"
 
     except requests.exceptions.RequestException as e:
-        # 打印异常栈
         traceback.print_exc()
         return f"调用大模型时发生错误: {str(e)}"
     except (KeyError, IndexError, ValueError, json.JSONDecodeError) as e:
         return f"处理大模型响应时发生错误: {str(e)}"
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=1145)
